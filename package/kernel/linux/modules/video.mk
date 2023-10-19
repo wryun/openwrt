@@ -490,7 +490,8 @@ define KernelPackage/video-v4l2-fwnode
   KCONFIG:= \
 	CONFIG_V4L2_FWNODE
   FILES:= \
-	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/v4l2-fwnode.ko
+	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/v4l2-fwnode.ko \
+	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/v4l2-async.ko
   AUTOLOAD:=$(call AutoLoad,65,v4l2-fwnode)
   $(call AddDepends/video)
 endef
@@ -1094,6 +1095,8 @@ define KernelPackage/video-imx219
   KCONFIG:= \
 	CONFIG_VIDEO_IMX219 \
 	CONFIG_MEDIA_SUPPORT \
+	CONFIG_VIDEO_ARDUCAM_PIVARIETY=n \
+	CONFIG_VIDEO_IMX519=n \
 	CONFIG_VIDEO_V4L2_SUBDEV_API=y
   FILES:=$(LINUX_DIR)/drivers/media/i2c/imx219.ko
   AUTOLOAD:=$(call AutoProbe,imx219)
