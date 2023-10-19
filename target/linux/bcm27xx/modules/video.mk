@@ -22,6 +22,24 @@ endef
 
 $(eval $(call KernelPackage,camera-bcm2835))
 
+define KernelPackage/libcamera-bcm2835
+  TITLE:=BCM2835 support for libcamera
+  KCONFIG:= \
+    CONFIG_VIDEO_BCM2835_UNICAM \
+    CONFIG_VIDEO_ISP_BCM2835 \
+    CONFIG_VIDEO_BCM2835_MMAL
+  FILES:= \
+    $(LINUX_DIR)/drivers/staging/vc04_services/bcm2835-isp/bcm2835-isp.ko \
+    $(LINUX_DIR)/drivers/media/platform/bcm2835/bcm2835-unicam.ko
+  AUTOLOAD:=$(call AutoLoad,65,bcm2835-unicam bcm2835-isp)
+  $(call AddDepends/video,@TARGET_bcm27xx +kmod-vchiq-mmal-bcm2835 +kmod-video-videobuf2 +kmod-video-v4l2-fwnode)
+endef
+
+define KernelPackage/libcamera-bcm2835/description
+  Camera host interface devices for Broadcom BCM2835 SoC needed for libcamera.
+endef
+
+$(eval $(call KernelPackage,libcamera-bcm2835))
 
 define KernelPackage/drm-vc4
   SUBMENU:=$(VIDEO_MENU)
@@ -71,8 +89,7 @@ $(eval $(call KernelPackage,vc-sm-cma))
 define KernelPackage/vchiq-mmal-bcm2835
   TITLE:=BCM2835 MMAL VCHIQ service
   KCONFIG:= \
-    CONFIG_BCM2835_VCHIQ_MMAL \
-    CONFIG_VIDEO_CODEC_BCM2835=n
+    CONFIG_BCM2835_VCHIQ_MMAL
   FILES:= \
     $(LINUX_DIR)/drivers/staging/vc04_services/vchiq-mmal/bcm2835-mmal-vchiq.ko
   $(call AddDepends/video,@TARGET_bcm27xx +kmod-vc-sm-cma)
@@ -84,3 +101,19 @@ define KernelPackage/vchiq-mmal-bcm2835/description
 endef
 
 $(eval $(call KernelPackage,vchiq-mmal-bcm2835))
+
+define KernelPackage/video-codec-bcm2835
+  TITLE:=BCM2835 Video codec support
+  KCONFIG:= \
+    CONFIG_VIDEO_CODEC_BCM2835
+  FILES:= \
+    $(LINUX_DIR)/drivers/staging/vc04_services/bcm2835-codec/bcm2835-codec.ko
+  AUTOLOAD:=$(call AutoLoad,65,bcm2835-codec)
+  $(call AddDepends/video,@TARGET_bcm27xx +kmod-vchiq-mmal-bcm2835 +kmod-video-videobuf2 +kmod-video-v4l2-mem2mem)
+endef
+
+define KernelPackage/video-codec-bcm2835/description
+  BCM2835 Video codec support
+endef
+
+$(eval $(call KernelPackage,video-codec-bcm2835))

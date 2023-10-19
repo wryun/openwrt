@@ -413,11 +413,16 @@ define KernelPackage/video-core
   KCONFIG:= \
 	CONFIG_MEDIA_SUPPORT \
 	CONFIG_MEDIA_CAMERA_SUPPORT=y \
+	CONFIG_MEDIA_CONTROLLER=y \
+	CONFIG_MEDIA_CONTROLLER_DVB=n \
 	CONFIG_VIDEO_DEV \
+	CONFIG_VIDEO_V4L2_SUBDEV_API=y \
 	CONFIG_V4L_PLATFORM_DRIVERS=y
   FILES:= \
-	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/videodev.ko
-  AUTOLOAD:=$(call AutoLoad,60, videodev v4l2-common)
+	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/videodev.ko \
+	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/v4l2-dv-timings.ko \
+	$(LINUX_DIR)/drivers/media/mc/mc.ko
+  AUTOLOAD:=$(call AutoLoad,60, videodev v4l2-common v4l2-dv-timings mc)
 endef
 
 define KernelPackage/video-core/description
@@ -445,13 +450,15 @@ define KernelPackage/video-videobuf2
   KCONFIG:= \
 	CONFIG_VIDEOBUF2_CORE \
 	CONFIG_VIDEOBUF2_MEMOPS \
-	CONFIG_VIDEOBUF2_VMALLOC
+	CONFIG_VIDEOBUF2_VMALLOC \
+	CONFIG_VIDEOBUF2_DMA_CONTIG
   FILES:= \
 	$(LINUX_DIR)/drivers/media/common/videobuf2/videobuf2-common.ko \
 	$(LINUX_DIR)/drivers/media/common/videobuf2/videobuf2-v4l2.ko \
 	$(LINUX_DIR)/drivers/media/common/videobuf2/videobuf2-memops.ko \
+	$(LINUX_DIR)/drivers/media/common/videobuf2/videobuf2-dma-contig.ko \
 	$(LINUX_DIR)/drivers/media/common/videobuf2/videobuf2-vmalloc.ko
-  AUTOLOAD:=$(call AutoLoad,65,videobuf2-core videobuf-v4l2 videobuf2-memops videobuf2-vmalloc)
+  AUTOLOAD:=$(call AutoLoad,65,videobuf2-core videobuf-v4l2 videobuf2-memops videobuf2-dma-contig videobuf2-vmalloc)
   $(call AddDepends/video)
 endef
 
@@ -461,6 +468,38 @@ endef
 
 $(eval $(call KernelPackage,video-videobuf2))
 
+define KernelPackage/video-v4l2-mem2mem
+  TITLE:=Video4Linux memory to memory operations
+  DEPENDS:=+kmod-video-videobuf2
+  KCONFIG:= \
+	CONFIG_V4L2_MEM2MEM_DEV
+  FILES:= \
+	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/v4l2-mem2mem.ko
+  AUTOLOAD:=$(call AutoLoad,65,v4l2-mem2mem)
+  $(call AddDepends/video)
+endef
+
+define KernelPackage/video-v4l2-mem2mem/description
+ Kernel modules that support Video4Linux memory to memory operations
+endef
+
+$(eval $(call KernelPackage,video-v4l2-mem2mem))
+
+define KernelPackage/video-v4l2-fwnode
+  TITLE:=Video4Linux fwnode
+  KCONFIG:= \
+	CONFIG_V4L2_FWNODE
+  FILES:= \
+	$(LINUX_DIR)/drivers/media/$(V4L2_DIR)/v4l2-fwnode.ko
+  AUTOLOAD:=$(call AutoLoad,65,v4l2-fwnode)
+  $(call AddDepends/video)
+endef
+
+define KernelPackage/video-v4l2-fwnode/description
+ Kernel modules that support Video4Linux fwnode
+endef
+
+$(eval $(call KernelPackage,video-v4l2-fwnode))
 
 define KernelPackage/video-cpia2
   TITLE:=CPIA2 video driver
@@ -1044,3 +1083,24 @@ define KernelPackage/video-gspca-konica/description
 endef
 
 $(eval $(call KernelPackage,video-gspca-konica))
+
+#
+# Camera sensor modules
+#
+define KernelPackage/video-imx219
+  SUBMENU:=$(VIDEO_MENU)
+  TITLE:=Sony IMX219 sensor support
+  DEPENDS:=+kmod-video-core +kmod-video-v4l2-fwnode +kmod-regmap-i2c
+  KCONFIG:= \
+	CONFIG_VIDEO_IMX219 \
+	CONFIG_MEDIA_SUPPORT \
+	CONFIG_VIDEO_V4L2_SUBDEV_API=y
+  FILES:=$(LINUX_DIR)/drivers/media/i2c/imx219.ko
+  AUTOLOAD:=$(call AutoProbe,imx219)
+endef
+
+define KernelPackage/video-imx219/description
+ Sony IMX219 sensor support
+endef
+
+$(eval $(call KernelPackage,video-imx219))
